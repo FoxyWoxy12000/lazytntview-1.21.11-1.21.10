@@ -1,5 +1,5 @@
 package net.orbitalstrike.client;
-
+//what
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
