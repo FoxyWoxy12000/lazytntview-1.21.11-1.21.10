@@ -1,0 +1,7 @@
+ext {
+    mc      = '1.21.11'
+    yarn    = '1.21.11+build.9'
+    loader  = '0.18.1'
+    fapi    = '0.141.2+1.21.11'
+    jarName = 'LazyTNTview_11'
+}

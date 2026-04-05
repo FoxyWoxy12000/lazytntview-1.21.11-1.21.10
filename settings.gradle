@@ -1,13 +1,12 @@
 pluginManagement {
 	repositories {
-		maven {
-			name = 'Fabric'
-			url = 'https://maven.fabricmc.net/'
-		}
-		mavenCentral()
+		maven { url = "https://maven.fabricmc.net/" }
 		gradlePluginPortal()
 	}
 }
 
 // Should match your modid
 rootProject.name = 'lazytntview'
+
+include 'v1.21.10'
+include 'v1.21.11'

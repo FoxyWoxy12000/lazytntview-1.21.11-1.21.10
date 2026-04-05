@@ -2,13 +2,12 @@
 	"required": true,
 	"package": "net.orbitalstrike.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin"
+	"mixins": [],
+	"client": [
+		"TntEntityMixin",
+		"TntEntityAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
 	}
 }

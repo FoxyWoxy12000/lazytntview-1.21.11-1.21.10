@@ -2,37 +2,20 @@
 	"schemaVersion": 1,
 	"id": "lazytntview",
 	"version": "${version}",
-	"name": "LazyTNTview",
-	"description": "This is an example description! Tell everyone what your mod is about!",
-	"authors": [
-		"Me!"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "CC0-1.0",
-	"icon": "assets/lazytntview/icon.png",
+	"name": "Lazy TNT View",
+	"description": "Accurate TNT visualization in lazy chunks for orbital strike cannon development and such.",
+	"authors": ["FoxyWoxy"],
+	"license": "MIT",
 	"environment": "*",
 	"entrypoints": {
-		"main": [
-			"net.orbitalstrike.LazyTNTview"
-		],
-		"client": [
-			"net.orbitalstrike.client.LazyTNTviewClient"
-		]
+		"main":   ["net.orbitalstrike.LazyTNTview"],
+		"client": ["net.orbitalstrike.client.LazyTNTviewClient"]
 	},
-	"mixins": [
-		"lazytntview.mixins.json",
-		{
-			"config": "lazytntview.client.mixins.json",
-			"environment": "client"
-		}
-	],
+	"mixins": ["lazytntview.mixins.json"],
+	"accessWidener": "lazytntview.accesswidner",
 	"depends": {
-		"fabricloader": ">=0.18.6",
-		"minecraft": "~1.21.11",
-		"java": ">=21",
-		"fabric-api": "*"
+		"fabricloader": ">=${loader_version}",
+		"fabric-api":   "*",
+		"minecraft":    "${minecraft_version}"
 	}
 }
