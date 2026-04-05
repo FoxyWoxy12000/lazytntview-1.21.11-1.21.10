@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.14-SNAPSHOT' apply false
+	id 'fabric-loom' version '1.15-SNAPSHOT' apply false
 }
 
 group   = 'net.orbitalstrike'
@@ -60,7 +60,7 @@ subprojects {
 	jar {
 		archiveFileName = "${project.jarName}.jar"
 		from(rootProject.file("LICENSE")) {
-			rename { "LICENSE_orbital-strike-helper" }
+			rename { "LICENSE_lazytntview" }
 		}
 	}
 }
