@@ -11,9 +11,9 @@ import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.TntEntity;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.Map;
 import java.util.UUID;
 
 @Environment(EnvType.CLIENT)
@@ -26,25 +26,18 @@ public final class TntOverlayRenderer {
 
     public static void register() {
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
+            VertexConsumerProvider consumers = context.consumers();
+            if (consumers == null) return;
+            MatrixStack matrices = context.matrixStack();
+            if (matrices == null) return;
+
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.world == null) return;
 
-            VertexConsumerProvider consumers = context.consumers();
-            if (consumers == null) return;
+            Vec3d cam = context.camera().getPos();
 
-            Vec3d       cam      = context.camera().getPos();
-            MatrixStack matrices = context.matrixStack();
-
-            for (Map.Entry<UUID, ClientTntStorage.TntState> e : ClientTntStorage.getAll()) {
-                UUID                      uuid  = e.getKey();
-                ClientTntStorage.TntState state = e.getValue();
-
-                if (entityExistsInWorld(client, uuid)) continue;
-
-                int cx = (int) Math.floor(state.x) >> 4;
-                int cz = (int) Math.floor(state.z) >> 4;
-                if (client.world.isChunkLoaded(cx, cz)) continue;
-
+            for (ClientTntStorage.TntState state : ClientTntStorage.getAll()) {
+                if (entityExistsInWorld(client, state.uuid)) continue;
                 renderPhantom(matrices, consumers, cam, state);
             }
         });
@@ -61,8 +54,8 @@ public final class TntOverlayRenderer {
                                       VertexConsumerProvider consumers,
                                       Vec3d cam,
                                       ClientTntStorage.TntState state) {
-        int  fuse   = state.fuse;
-        long now    = System.currentTimeMillis();
+        int  fuse  = state.fuse;
+        long now   = System.currentTimeMillis();
         long period;
 
         if      (fuse <= 10) period = 80L;
@@ -82,11 +75,9 @@ public final class TntOverlayRenderer {
                 state.z - cam.z
         );
 
-        VertexConsumer lines = consumers.getBuffer(RenderLayer.LINES);
-        WorldRenderer.drawBox(matrices, lines,
-                -HS, 0.0, -HS,
-                HS, HGT,  HS,
-                r, g, b, 1.0f);
+        VertexConsumer lines = consumers.getBuffer(RenderLayer.getLines());
+        Box box = new Box(-HS, 0.0, -HS, HS, HGT, HS);
+        WorldRenderer.drawBox(matrices, lines, box, r, g, b, 1.0f);
 
         matrices.pop();
     }

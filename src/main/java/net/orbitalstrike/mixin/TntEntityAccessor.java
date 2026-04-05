@@ -9,6 +9,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Environment(EnvType.CLIENT)
 @Mixin(TntEntity.class)
 public interface TntEntityAccessor {
-    @Accessor("fuseTimer")
-    void setFuseTimer(int fuseTimer);
+    @Accessor("fuse")
+    void setFuse(int fuse);
 }

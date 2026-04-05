@@ -18,18 +18,21 @@ public class TntEntityMixin {
 	private void onTick(CallbackInfo ci) {
 		TntEntity self = (TntEntity)(Object)this;
 
-		if (!self.getWorld().isClient()) return;
+		if (!self.getEntityWorld()
+				.isClient()) return;
 
 		ClientTntStorage.TntState state = ClientTntStorage.get(self.getUuid());
 		if (state == null) return;
 
 		int cx = (int) Math.floor(self.getX()) >> 4;
 		int cz = (int) Math.floor(self.getZ()) >> 4;
-		if (self.getWorld().isChunkLoaded(cx, cz)) return;
+		if (self.getEntityWorld()
+				.isChunkLoaded(cx, cz)) return;
 
-		self.prevX = state.x;
-		self.prevY = state.y;
-		self.prevZ = state.z;
+		self.lastX = state.x;
+		self.lastY = state.y;
+		self.lastZ = state.z;
+
 
 		self.setPos(state.x, state.y, state.z);
 		self.setVelocity(Vec3d.ZERO);
