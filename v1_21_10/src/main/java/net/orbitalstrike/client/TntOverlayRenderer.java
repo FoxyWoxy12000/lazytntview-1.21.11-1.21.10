@@ -18,9 +18,10 @@ import java.util.UUID;
 @Environment(EnvType.CLIENT)
 public final class TntOverlayRenderer {
 
-    private TntOverlayRenderer() {}
+    private TntOverlayRenderer() {
+    }
 
-    private static final double HS  = 0.49;
+    private static final double HS = 0.49;
     private static final double HGT = 0.98;
 
     public static void render(MatrixStack matrices, VertexConsumerProvider consumers, Vec3d cam) {
@@ -73,7 +74,8 @@ public final class TntOverlayRenderer {
         double y2 = state.y - cam.y + HGT;
         double z2 = state.z - cam.z + HS;
 
-        VertexConsumer lines = consumers.getBuffer(RenderLayer.getLines());
-        VertexRendering.drawBox(matrices, lines, x1, y1, z1, x2, y2, z2, r, g, b, 1.0f);
+        VertexConsumer lines = consumers.getBuffer(RenderLayer.getLineStrip());
+        VertexRendering.drawBox(matrices.peek(), lines, x1, y1, z1, x2, y2, z2, r, g, b, 1.0f);
+
     }
 }

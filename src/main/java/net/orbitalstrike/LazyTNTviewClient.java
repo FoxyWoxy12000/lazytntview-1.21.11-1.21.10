@@ -25,7 +25,6 @@ public class LazyTNTviewClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register(
                 (handler, client) -> ClientTntStorage.clear()
         );
-
-        TntOverlayRenderer.register();
+        //TntOverlayRenderer.register();
     }
 }
