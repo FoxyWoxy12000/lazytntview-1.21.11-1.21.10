@@ -73,7 +73,7 @@ public final class TntOverlayRenderer {
         double y2 = state.y - cam.y + HGT;
         double z2 = state.z - cam.z + HS;
 
-        //VertexConsumer lines = consumers.getBuffer(RenderLayer.getLines());
-        //VertexRendering.drawBox(matrices, lines, x1, y1, z1, x2, y2, z2, r, g, b, 1.0f);
+        VertexConsumer lines = consumers.getBuffer(RenderLayer.getLines());
+        VertexRendering.drawBox(matrices, lines, x1, y1, z1, x2, y2, z2, r, g, b, 1.0f);
     }
 }
