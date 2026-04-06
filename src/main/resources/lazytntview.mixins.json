@@ -4,8 +4,7 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [],
 	"client": [
-		"TntEntityMixin",
-		"TntEntityAccessor"
+		"TntEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

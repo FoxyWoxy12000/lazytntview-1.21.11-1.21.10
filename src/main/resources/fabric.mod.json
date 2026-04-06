@@ -9,10 +9,9 @@
 	"environment": "*",
 	"entrypoints": {
 		"main":   ["net.orbitalstrike.LazyTNTview"],
-		"client": ["net.orbitalstrike.client.LazyTNTviewClient"]
+		"client": ["net.orbitalstrike.LazyTNTviewClient"]
 	},
 	"mixins": ["lazytntview.mixins.json"],
-	"accessWidener": "lazytntview.accesswidner",
 	"depends": {
 		"fabricloader": ">=${loader_version}",
 		"fabric-api":   "*",

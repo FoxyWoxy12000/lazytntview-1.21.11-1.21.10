@@ -26,6 +26,6 @@ public class LazyTNTviewClient implements ClientModInitializer {
                 (handler, client) -> ClientTntStorage.clear()
         );
 
-        TntOverlayRenderer.register();
+        //TntOverlayRenderer.register();
     }
 }
