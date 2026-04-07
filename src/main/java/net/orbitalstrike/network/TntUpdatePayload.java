@@ -12,7 +12,7 @@ import java.util.UUID;
 public record TntUpdatePayload(List<TntEntry> entries) implements CustomPayload {
 
     public static final CustomPayload.Id<TntUpdatePayload> ID =
-            new CustomPayload.Id<>(Identifier.of("orbitalstrike", "tnt_update"));
+            new CustomPayload.Id<>(Identifier.of("lazytntview", "tnt_update"));
 
     public static final PacketCodec<PacketByteBuf, TntUpdatePayload> CODEC =
             PacketCodec.of(TntUpdatePayload::encode, TntUpdatePayload::decode);
@@ -27,6 +27,7 @@ public record TntUpdatePayload(List<TntEntry> entries) implements CustomPayload 
             buf.writeFloat(e.yaw());
             buf.writeFloat(e.pitch());
             buf.writeVarInt(e.fuse());
+            buf.writeBoolean(e.lazy());
         }
     }
 
@@ -37,8 +38,9 @@ public record TntUpdatePayload(List<TntEntry> entries) implements CustomPayload 
             entries.add(new TntEntry(
                     buf.readUuid(),
                     buf.readDouble(), buf.readDouble(), buf.readDouble(),
-                    buf.readFloat(),  buf.readFloat(),
-                    buf.readVarInt()
+                    buf.readFloat(), buf.readFloat(),
+                    buf.readVarInt(),
+                    buf.readBoolean()
             ));
         }
         return new TntUpdatePayload(entries);
@@ -51,6 +53,7 @@ public record TntUpdatePayload(List<TntEntry> entries) implements CustomPayload 
             UUID   uuid,
             double x, double y, double z,
             float  yaw, float pitch,
-            int    fuse
+            int    fuse,
+            boolean lazy
     ) {}
 }

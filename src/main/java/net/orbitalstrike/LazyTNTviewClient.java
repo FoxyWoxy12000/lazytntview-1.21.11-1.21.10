@@ -4,7 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.orbitalstrike.client.ClientTntStorage;
-import net.orbitalstrike.client.TntOverlayRenderer;
+//import net.orbitalstrike.client.TntOverlayRenderer;
 import net.orbitalstrike.network.TntUpdatePayload;
 
 public class LazyTNTviewClient implements ClientModInitializer {
@@ -25,6 +25,7 @@ public class LazyTNTviewClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register(
                 (handler, client) -> ClientTntStorage.clear()
         );
+
         //TntOverlayRenderer.register();
     }
 }

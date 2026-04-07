@@ -18,7 +18,7 @@ public final class ClientTntStorage {
             STATE.put(e.uuid(), new TntState(
                     e.x(), e.y(), e.z(),
                     e.yaw(), e.pitch(),
-                    e.fuse(), worldTime
+                    e.fuse(), e.lazy(), worldTime
             ));
         }
         STATE.keySet().retainAll(incoming);
@@ -40,13 +40,14 @@ public final class ClientTntStorage {
         public final double x, y, z;
         public final float  yaw, pitch;
         public final int    fuse;
+        public final boolean lazy;
         public final long   lastUpdateTime;
 
         TntState(double x, double y, double z,
-                 float yaw, float pitch, int fuse, long lastUpdateTime) {
+                 float yaw, float pitch, int fuse, boolean lazy, long lastUpdateTime) {
             this.x = x; this.y = y; this.z = z;
             this.yaw = yaw; this.pitch = pitch;
-            this.fuse = fuse;
+            this.fuse = fuse; this.lazy = lazy;
             this.lastUpdateTime = lastUpdateTime;
         }
     }

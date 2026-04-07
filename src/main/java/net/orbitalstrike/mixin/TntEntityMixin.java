@@ -21,11 +21,7 @@ public class TntEntityMixin {
 		if (!self.getEntityWorld().isClient()) return;
 
 		ClientTntStorage.TntState state = ClientTntStorage.get(self.getUuid());
-		if (state == null) return;
-
-		int cx = (int) Math.floor(self.getX()) >> 4;
-		int cz = (int) Math.floor(self.getZ()) >> 4;
-		if (self.getEntityWorld().isChunkLoaded(cx, cz)) return;
+		if (state == null || !state.lazy) return;
 
 		self.lastX = state.x;
 		self.lastY = state.y;
@@ -33,7 +29,6 @@ public class TntEntityMixin {
 
 		self.setPos(state.x, state.y, state.z);
 		self.setVelocity(Vec3d.ZERO);
-
 		self.setFuse(state.fuse);
 
 		ci.cancel();
