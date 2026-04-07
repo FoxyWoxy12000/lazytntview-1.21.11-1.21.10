@@ -27,7 +27,6 @@ public record TntUpdatePayload(List<TntEntry> entries) implements CustomPayload 
             buf.writeFloat(e.yaw());
             buf.writeFloat(e.pitch());
             buf.writeVarInt(e.fuse());
-            buf.writeBoolean(e.lazy());
         }
     }
 
@@ -39,8 +38,7 @@ public record TntUpdatePayload(List<TntEntry> entries) implements CustomPayload 
                     buf.readUuid(),
                     buf.readDouble(), buf.readDouble(), buf.readDouble(),
                     buf.readFloat(), buf.readFloat(),
-                    buf.readVarInt(),
-                    buf.readBoolean()
+                    buf.readVarInt()
             ));
         }
         return new TntUpdatePayload(entries);
@@ -53,7 +51,6 @@ public record TntUpdatePayload(List<TntEntry> entries) implements CustomPayload 
             UUID   uuid,
             double x, double y, double z,
             float  yaw, float pitch,
-            int    fuse,
-            boolean lazy
+            int    fuse
     ) {}
 }

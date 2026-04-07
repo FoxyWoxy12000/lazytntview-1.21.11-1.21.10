@@ -17,20 +17,20 @@ public class TntEntityMixin {
 	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
 	private void onTick(CallbackInfo ci) {
 		TntEntity self = (TntEntity)(Object)this;
-
 		if (!self.getEntityWorld().isClient()) return;
 
 		ClientTntStorage.TntState state = ClientTntStorage.get(self.getUuid());
-		if (state == null || !state.lazy) return;
+		if (state == null) return;
 
+		// Freeze the entity at exactly the server-reported position.
+		// This handles the case where the chunk is loaded on the client
+		// but the entity might drift due to client-side physics.
 		self.lastX = state.x;
 		self.lastY = state.y;
 		self.lastZ = state.z;
-
 		self.setPos(state.x, state.y, state.z);
 		self.setVelocity(Vec3d.ZERO);
 		self.setFuse(state.fuse);
-
 		ci.cancel();
 	}
 }

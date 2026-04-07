@@ -19,6 +19,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.TntEntity;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.system.MemoryUtil;
@@ -36,10 +37,12 @@ public final class TntOverlayRenderer {
     private static final float HS  = 0.49f;
     private static final float HGT = 0.98f;
 
-    private static final ByteBufferBuilder ALLOCATOR = new ByteBufferBuilder(RenderPipelines.DEBUG_LINE_STRIP.getVertexFormat().getVertexSize() * 256);
-    private static final Vector4f COLOR_MODULATOR   = new Vector4f(1f, 1f, 1f, 1f);
-    private static final Vector3f MODEL_OFFSET      = new Vector3f();
-    private static final Matrix4f TEXTURE_MATRIX    = new Matrix4f();
+    private static final ByteBufferBuilder ALLOCATOR = new ByteBufferBuilder(
+            RenderPipelines.DEBUG_LINE_STRIP.getVertexFormat().getVertexSize() * 512
+    );
+    private static final Vector4f COLOR_MODULATOR = new Vector4f(1f, 1f, 1f, 1f);
+    private static final Vector3f MODEL_OFFSET    = new Vector3f();
+    private static final Matrix4f TEXTURE_MATRIX  = new Matrix4f();
     private static GpuBuffer vertexBuffer = null;
 
     public static void register() {}
@@ -48,7 +51,6 @@ public final class TntOverlayRenderer {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) return;
 
-        // Build the buffer during extraction phase
         BufferBuilder buffer = new BufferBuilder(
                 ALLOCATOR,
                 RenderPipelines.DEBUG_LINE_STRIP.getVertexFormatMode(),
@@ -58,10 +60,9 @@ public final class TntOverlayRenderer {
         boolean anyDrawn = false;
 
         for (Map.Entry<UUID, ClientTntStorage.TntState> entry : ClientTntStorage.getAll()) {
-            ClientTntStorage.TntState state = entry.getValue();
-            if (!state.lazy) continue;
+            // Only draw ghost if the entity is NOT loaded on the client
             if (entityExistsInWorld(client, entry.getKey())) continue;
-            addPhantomToBuffer(buffer, matrices, cam, state);
+            addPhantomToBuffer(buffer, matrices, cam, entry.getValue());
             anyDrawn = true;
         }
 
@@ -100,26 +101,23 @@ public final class TntOverlayRenderer {
         float y0 = (float)(state.y - cam.y);
         float z0 = (float)(state.z - cam.z);
 
-        org.joml.Matrix4fc pose = matrices.peek().getPositionMatrix();
+        Matrix4fc pose = matrices.peek().getPositionMatrix();
 
-        // Bottom face
         addLine(buffer, pose, x0-HS, y0,     z0-HS, x0+HS, y0,     z0-HS, r, g, b);
         addLine(buffer, pose, x0+HS, y0,     z0-HS, x0+HS, y0,     z0+HS, r, g, b);
         addLine(buffer, pose, x0+HS, y0,     z0+HS, x0-HS, y0,     z0+HS, r, g, b);
         addLine(buffer, pose, x0-HS, y0,     z0+HS, x0-HS, y0,     z0-HS, r, g, b);
-        // Top face
         addLine(buffer, pose, x0-HS, y0+HGT, z0-HS, x0+HS, y0+HGT, z0-HS, r, g, b);
         addLine(buffer, pose, x0+HS, y0+HGT, z0-HS, x0+HS, y0+HGT, z0+HS, r, g, b);
         addLine(buffer, pose, x0+HS, y0+HGT, z0+HS, x0-HS, y0+HGT, z0+HS, r, g, b);
         addLine(buffer, pose, x0-HS, y0+HGT, z0+HS, x0-HS, y0+HGT, z0-HS, r, g, b);
-        // Verticals
         addLine(buffer, pose, x0-HS, y0,     z0-HS, x0-HS, y0+HGT, z0-HS, r, g, b);
         addLine(buffer, pose, x0+HS, y0,     z0-HS, x0+HS, y0+HGT, z0-HS, r, g, b);
         addLine(buffer, pose, x0+HS, y0,     z0+HS, x0+HS, y0+HGT, z0+HS, r, g, b);
         addLine(buffer, pose, x0-HS, y0,     z0+HS, x0-HS, y0+HGT, z0+HS, r, g, b);
     }
 
-    private static void addLine(BufferBuilder buffer, org.joml.Matrix4fc pose,
+    private static void addLine(BufferBuilder buffer, Matrix4fc pose,
                                 float x1, float y1, float z1,
                                 float x2, float y2, float z2,
                                 float r, float g, float b) {
@@ -133,24 +131,25 @@ public final class TntOverlayRenderer {
     private static void drawMesh(MinecraftClient client, MeshData mesh) {
         MeshData.DrawState draw = mesh.drawState();
         VertexFormat format = draw.format();
-        int vertexBufferSize = draw.vertexCount() * format.getVertexSize();
+        int size = draw.vertexCount() * format.getVertexSize();
 
-        if (vertexBuffer == null || vertexBuffer.size() < vertexBufferSize) {
+        if (vertexBuffer == null || vertexBuffer.size() < size) {
             if (vertexBuffer != null) vertexBuffer.close();
             vertexBuffer = RenderSystem.getDevice().createBuffer(
                     () -> "lazytntview line buffer",
                     GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_MAP_WRITE,
-                    vertexBufferSize
+                    size
             );
         }
 
         CommandEncoder encoder = RenderSystem.getDevice().createCommandEncoder();
-        try (GpuBuffer.MappedView view = encoder.mapBuffer(vertexBuffer.slice(0, mesh.vertexBuffer().remaining()), false, true)) {
+        try (GpuBuffer.MappedView view = encoder.mapBuffer(
+                vertexBuffer.slice(0, mesh.vertexBuffer().remaining()), false, true)) {
             MemoryUtil.memCopy(mesh.vertexBuffer(), view.data());
         }
 
-        RenderSystem.AutoStorageIndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(draw.mode());
-        GpuBuffer indices = indexBuffer.getBuffer(draw.indexCount());
+        RenderSystem.AutoStorageIndexBuffer indexBuf = RenderSystem.getSequentialBuffer(draw.mode());
+        GpuBuffer indices = indexBuf.getBuffer(draw.indexCount());
 
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
                 .writeTransform(RenderSystem.getModelViewMatrix(), COLOR_MODULATOR, MODEL_OFFSET, TEXTURE_MATRIX);
@@ -168,7 +167,7 @@ public final class TntOverlayRenderer {
             RenderSystem.bindDefaultUniforms(pass);
             pass.setUniform("DynamicTransforms", dynamicTransforms);
             pass.setVertexBuffer(0, vertexBuffer);
-            pass.setIndexBuffer(indices, indexBuffer.type());
+            pass.setIndexBuffer(indices, indexBuf.type());
             pass.drawIndexed(0, 0, draw.indexCount(), 1);
         }
     }

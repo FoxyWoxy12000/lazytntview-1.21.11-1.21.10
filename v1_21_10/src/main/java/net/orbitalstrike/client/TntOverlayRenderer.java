@@ -29,10 +29,10 @@ public final class TntOverlayRenderer {
         if (client.world == null) return;
 
         for (Map.Entry<UUID, ClientTntStorage.TntState> entry : ClientTntStorage.getAll()) {
-            ClientTntStorage.TntState state = entry.getValue();
-            if (!state.lazy) continue;
+            // If the entity is loaded on the client, the real entity renders itself.
+            // We only need to draw the ghost when the client doesn't have the chunk.
             if (entityExistsInWorld(client, entry.getKey())) continue;
-            renderPhantom(matrices, consumers, cam, state);
+            renderPhantom(matrices, consumers, cam, entry.getValue());
         }
     }
 
