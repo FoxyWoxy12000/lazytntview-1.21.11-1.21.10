@@ -24,9 +24,11 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.system.MemoryUtil;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.UUID;
 
 @Environment(EnvType.CLIENT)
@@ -51,6 +53,12 @@ public final class TntOverlayRenderer {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) return;
 
+        // Build UUID set once — O(n) — instead of scanning all entities per TNT entry.
+        Set<UUID> clientTntUuids = new HashSet<>();
+        for (Entity e : client.world.getEntities()) {
+            if (e instanceof TntEntity) clientTntUuids.add(e.getUuid());
+        }
+
         BufferBuilder buffer = new BufferBuilder(
                 ALLOCATOR,
                 RenderPipelines.DEBUG_LINE_STRIP.getVertexFormatMode(),
@@ -60,9 +68,16 @@ public final class TntOverlayRenderer {
         boolean anyDrawn = false;
 
         for (Map.Entry<UUID, ClientTntStorage.TntState> entry : ClientTntStorage.getAll()) {
-            // Only draw ghost if the entity is NOT loaded on the client
-            if (entityExistsInWorld(client, entry.getKey())) continue;
-            addPhantomToBuffer(buffer, matrices, cam, entry.getValue());
+            ClientTntStorage.TntState state = entry.getValue();
+
+            // Only draw ghost boxes for lazy TNT.
+            // Non-lazy TNT is in a loaded chunk and vanilla renders it normally.
+            if (!state.lazy) continue;
+
+            // If the entity is already in the client world, vanilla handles rendering.
+            if (clientTntUuids.contains(entry.getKey())) continue;
+
+            addPhantomToBuffer(buffer, matrices, cam, state);
             anyDrawn = true;
         }
 
@@ -74,14 +89,6 @@ public final class TntOverlayRenderer {
         MeshData mesh = buffer.buildOrThrow();
         drawMesh(client, mesh);
         mesh.close();
-    }
-
-    private static boolean entityExistsInWorld(MinecraftClient client, UUID uuid) {
-        if (client.world == null) return false;
-        for (Entity e : client.world.getEntities()) {
-            if (e instanceof TntEntity && e.getUuid().equals(uuid)) return true;
-        }
-        return false;
     }
 
     private static void addPhantomToBuffer(BufferBuilder buffer,
