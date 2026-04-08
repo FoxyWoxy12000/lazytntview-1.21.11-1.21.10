@@ -4,7 +4,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.entity.TntEntity;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.chunk.ChunkStatus;
 import net.orbitalstrike.client.ClientTntStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,21 +20,11 @@ public class TntEntityMixin {
 		if (!self.getEntityWorld().isClient()) return;
 
 		ClientTntStorage.TntState state = ClientTntStorage.get(self.getUuid());
-		// Only interfere if the server told us this TNT is lazy
+		// Only interfere if the server explicitly told us this TNT is lazy.
 		if (state == null || !state.lazy) return;
 
-		// Double-check: if the chunk IS loaded on the client, let vanilla handle it.
-		// This catches carpet creative mode where client may have the chunk.
-		int cx = (int)Math.floor(state.x) >> 4;
-		int cz = (int)Math.floor(state.z) >> 4;
-		boolean chunkLoadedOnClient = self.getEntityWorld()
-				.getChunk(cx, cz, ChunkStatus.FULL, false) != null;
-		if (chunkLoadedOnClient) return;
-
-		// Chunk is not loaded on client — freeze this entity at the server position.
-		self.lastX = state.x;
-		self.lastY = state.y;
-		self.lastZ = state.z;
+		// Server confirmed this chunk has no entity-ticking ticket.
+		// Freeze the entity at the server-reported position — no gravity, no fuse tick.
 		self.setPos(state.x, state.y, state.z);
 		self.setVelocity(Vec3d.ZERO);
 		self.setFuse(state.fuse);
