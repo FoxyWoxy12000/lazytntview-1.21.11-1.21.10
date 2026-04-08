@@ -15,20 +15,17 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderPipelines;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.TntEntity;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.chunk.ChunkStatus;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.system.MemoryUtil;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
-import java.util.Set;
 import java.util.UUID;
 
 @Environment(EnvType.CLIENT)
@@ -53,12 +50,6 @@ public final class TntOverlayRenderer {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) return;
 
-        // Build UUID set once — O(n) — instead of scanning all entities per TNT entry.
-        Set<UUID> clientTntUuids = new HashSet<>();
-        for (Entity e : client.world.getEntities()) {
-            if (e instanceof TntEntity) clientTntUuids.add(e.getUuid());
-        }
-
         BufferBuilder buffer = new BufferBuilder(
                 ALLOCATOR,
                 RenderPipelines.DEBUG_LINE_STRIP.getVertexFormatMode(),
@@ -70,12 +61,12 @@ public final class TntOverlayRenderer {
         for (Map.Entry<UUID, ClientTntStorage.TntState> entry : ClientTntStorage.getAll()) {
             ClientTntStorage.TntState state = entry.getValue();
 
-            // Only draw ghost boxes for lazy TNT.
-            // Non-lazy TNT is in a loaded chunk and vanilla renders it normally.
-            if (!state.lazy) continue;
-
-            // If the entity is already in the client world, vanilla handles rendering.
-            if (clientTntUuids.contains(entry.getKey())) continue;
+            // Only draw ghost if the chunk is NOT loaded on the client.
+            int cx = (int) Math.floor(state.x) >> 4;
+            int cz = (int) Math.floor(state.z) >> 4;
+            boolean chunkLoaded = client.world
+                    .getChunk(cx, cz, ChunkStatus.FULL, false) != null;
+            if (chunkLoaded) continue;
 
             addPhantomToBuffer(buffer, matrices, cam, state);
             anyDrawn = true;
@@ -155,11 +146,13 @@ public final class TntOverlayRenderer {
             MemoryUtil.memCopy(mesh.vertexBuffer(), view.data());
         }
 
-        RenderSystem.AutoStorageIndexBuffer indexBuf = RenderSystem.getSequentialBuffer(draw.mode());
+        RenderSystem.AutoStorageIndexBuffer indexBuf =
+                RenderSystem.getSequentialBuffer(draw.mode());
         GpuBuffer indices = indexBuf.getBuffer(draw.indexCount());
 
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-                .writeTransform(RenderSystem.getModelViewMatrix(), COLOR_MODULATOR, MODEL_OFFSET, TEXTURE_MATRIX);
+                .writeTransform(RenderSystem.getModelViewMatrix(),
+                        COLOR_MODULATOR, MODEL_OFFSET, TEXTURE_MATRIX);
 
         try (RenderPass pass = RenderSystem.getDevice()
                 .createCommandEncoder()

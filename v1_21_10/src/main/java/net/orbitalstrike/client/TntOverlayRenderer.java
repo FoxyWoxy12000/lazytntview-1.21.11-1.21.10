@@ -7,13 +7,10 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.TntEntity;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.chunk.ChunkStatus;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Environment(EnvType.CLIENT)
@@ -30,21 +27,16 @@ public final class TntOverlayRenderer {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) return;
 
-        // Build UUID set once — O(n) — instead of scanning all entities per TNT entry.
-        Set<UUID> clientTntUuids = new HashSet<>();
-        for (Entity e : client.world.getEntities()) {
-            if (e instanceof TntEntity) clientTntUuids.add(e.getUuid());
-        }
-
         for (Map.Entry<UUID, ClientTntStorage.TntState> entry : ClientTntStorage.getAll()) {
             ClientTntStorage.TntState state = entry.getValue();
 
-            // Only draw ghost boxes for lazy TNT.
-            // Non-lazy TNT is in a loaded chunk and vanilla renders it normally.
-            if (!state.lazy) continue;
-
-            // If the entity is already in the client world, vanilla handles rendering.
-            if (clientTntUuids.contains(entry.getKey())) continue;
+            // Only draw ghost if client doesn't have this chunk loaded.
+            // If the chunk IS loaded, the real entity is already rendering.
+            int cx = (int) Math.floor(state.x) >> 4;
+            int cz = (int) Math.floor(state.z) >> 4;
+            boolean chunkLoaded = client.world
+                    .getChunk(cx, cz, ChunkStatus.FULL, false) != null;
+            if (chunkLoaded) continue;
 
             renderPhantom(matrices, consumers, cam, state);
         }
