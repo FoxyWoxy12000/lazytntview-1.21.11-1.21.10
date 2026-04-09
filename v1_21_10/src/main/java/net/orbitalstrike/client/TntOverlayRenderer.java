@@ -9,12 +9,17 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.ChunkStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.UUID;
 
 @Environment(EnvType.CLIENT)
 public final class TntOverlayRenderer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("lazytntview-renderer");
+    private static int renderCallCount = 0;
 
     private TntOverlayRenderer() {}
 
@@ -27,17 +32,20 @@ public final class TntOverlayRenderer {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) return;
 
+        // Log every 100 calls so we know render() is being called at all
+        renderCallCount++;
+        if (renderCallCount % 100 == 0) {
+            LOGGER.info("render() called (count={}), storage has {} entries",
+                    renderCallCount, ClientTntStorage.getAll().size());
+        }
+
         for (Map.Entry<UUID, ClientTntStorage.TntState> entry : ClientTntStorage.getAll()) {
             ClientTntStorage.TntState state = entry.getValue();
-
-            // Only draw ghost if client doesn't have this chunk loaded.
-            // If the chunk IS loaded, the real entity is already rendering.
             int cx = (int) Math.floor(state.x) >> 4;
             int cz = (int) Math.floor(state.z) >> 4;
-            boolean chunkLoaded = client.world
-                    .getChunk(cx, cz, ChunkStatus.FULL, false) != null;
+            boolean chunkLoaded = client.world.getChunk(cx, cz, ChunkStatus.FULL, false) != null;
+            LOGGER.info("TNT {} chunk ({},{}) loaded={}", entry.getKey(), cx, cz, chunkLoaded);
             if (chunkLoaded) continue;
-
             renderPhantom(matrices, consumers, cam, state);
         }
     }

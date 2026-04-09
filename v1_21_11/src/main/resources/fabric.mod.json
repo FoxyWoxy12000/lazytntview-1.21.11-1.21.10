@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "lazytntview",
+  "version": "${version}",
+  "name": "Lazy TNT View",
+  "description": "Accurate TNT visualization in lazy chunks for orbital strike cannon development and such.",
+  "authors": ["FoxyWoxy"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main":   ["net.orbitalstrike.LazyTNTview"],
+    "client": ["net.orbitalstrike.LazyTNTviewClient"]
+  },
+  "mixins": ["lazytntview.mixins.json"],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api":   "*",
+    "minecraft":    "~1.21.11"
+  }
+}

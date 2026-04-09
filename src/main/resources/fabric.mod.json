@@ -8,8 +8,7 @@
 	"license": "MIT",
 	"environment": "*",
 	"entrypoints": {
-		"main":   ["net.orbitalstrike.LazyTNTview"],
-		"client": ["net.orbitalstrike.LazyTNTviewClient"]
+		"main":   ["net.orbitalstrike.LazyTNTview"]
 	},
 	"mixins": ["lazytntview.mixins.json"],
 	"depends": {
