@@ -17,21 +17,27 @@ subprojects {
 	}
 
 	dependencies {
-		minecraft      "com.mojang:minecraft:${project.mc}"
-		mappings       "net.fabricmc:yarn:${project.yarn}:v2"
+		minecraft         "com.mojang:minecraft:${project.mc}"
+		mappings          "net.fabricmc:yarn:${project.yarn}:v2"
 		modImplementation "net.fabricmc:fabric-loader:${project.loader}"
 		modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fapi}"
-
 	}
-
 
 	sourceSets {
 		main {
 			java {
-				srcDirs = [rootProject.file('src/main/java')]
+				// shared code + version-specific code both get compiled
+				srcDirs = [
+						rootProject.file('src/main/java'),
+						project.file('src/main/java')       // e.g. v1_21_10/src/main/java
+				]
 			}
 			resources {
-				srcDirs = [rootProject.file('src/main/resources')]
+				// version-specific resources take priority (fabric.mod.json with client entrypoint)
+				srcDirs = [
+						rootProject.file('src/main/resources'),
+						project.file('src/main/resources')  // e.g. v1_21_10/src/main/resources
+				]
 			}
 		}
 	}

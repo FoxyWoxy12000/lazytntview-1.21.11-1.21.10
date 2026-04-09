@@ -7,12 +7,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.orbitalstrike.client.ClientTntStorage;
 import net.orbitalstrike.client.TntOverlayRenderer;
 import net.orbitalstrike.network.TntUpdatePayload;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LazyTNTviewClient implements ClientModInitializer {
-
-    public static final Logger LOGGER = LoggerFactory.getLogger("lazytntview-client");
 
     @Override
     public void onInitializeClient() {
@@ -20,7 +16,6 @@ public class LazyTNTviewClient implements ClientModInitializer {
                 TntUpdatePayload.ID,
                 (payload, context) -> context.client().execute(() -> {
                     if (context.client().world == null) return;
-                    LOGGER.info("Received TNT packet with {} entries", payload.entries().size());
                     ClientTntStorage.updateAll(
                             payload.entries(),
                             context.client().world.getTime()
@@ -33,12 +28,7 @@ public class LazyTNTviewClient implements ClientModInitializer {
         );
 
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            LOGGER.info("WorldRenderEvents.AFTER_ENTITIES fired!");
-            if (context.matrixStack() == null || context.consumers() == null) {
-                LOGGER.info("Context null — matrixStack={} consumers={}",
-                        context.matrixStack(), context.consumers());
-                return;
-            }
+            if (context.matrixStack() == null || context.consumers() == null) return;
             TntOverlayRenderer.render(
                     context.matrixStack(),
                     context.consumers(),
